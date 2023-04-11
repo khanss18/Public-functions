@@ -1,0 +1,43 @@
+# Weight distribution
+dist_gen <- function(min_w,max_w,rml,rmu,tot_rand){
+  rand <- as.integer(runif(1,(tot_rand*0.4),tot_rand*0.6))
+  i <- 1; j <- 1
+  x1 <- rep(0,(rand)); x2 <- rep(0,((tot_rand-rand)))
+  while(i <= (rand)){
+    entry <- as.integer(rnorm(1,150,30))
+    if(entry > min_w & !entry %in% rml:rmu){
+      x1[i] <- entry
+      i <- i+1
+    }
+  }
+  
+  while(j <= (tot_rand-rand)){
+    entry <- as.integer(rnorm(1,250,30))
+    if(entry < max_w & !entry %in% rml:rmu){
+      x2[j] <- entry
+      j <- j+1
+    }
+  }
+  x <- sample(c(x1,x2))
+  return(x)
+}
+
+
+# Rotation distribution
+rot_gen <- function(min_rot, max_rot, sd_rot, tot_rand){
+  i <- 1
+  x <- rep(0,tot_rand)
+  while(i <= 1000){
+    y <- rnorm(1,(max_rot+min_rot)/2, sd_rot)
+    if((max_rot+min_rot)/2 <= y & y < max_rot){
+      x[i] <- -((max_rot+min_rot)/2 - y)
+      i <- i + 1
+    }
+    else if(min_rot <= y & y < (max_rot+min_rot)/2){
+      y <- abs(max_rot+min_rot)/2 + y
+      x[i] <- y
+      i <- i + 1
+    }
+  }
+  return(x)
+}
