@@ -1,0 +1,33 @@
+# Coordinates of trays
+x = as.numeric(t(con_tray[1][[1]][1:con_fields,]))
+as.numeric(t(con_tray[2][[1]][1:con_fields,]))
+
+
+tray_coord <- function(tray_lanes,adv_length,con_lanes_width){
+  cent_to_drop <- con_lanes*(con_lanes_width/2) + 2 + con_lanes_width
+  for(i in 1:2){
+    tray_coords <- paste("tray_coords",i,sep = "")
+    assign(tray_coords,rep(0,tray_lanes*con_fields))
+  }
+  if(tray_lanes == 1){
+    tray_coords1 <- rep(c(cent_to_drop),each=con_fields)
+  }
+  else{
+    tray_coords1 <- rep(c(-cent_to_drop,cent_to_drop),each=con_fields)
+  }
+  tray_coords2 <- rep(seq((adv_length*con_fields)-con_lanes_width,con_lanes_width, by = -adv_length),tray_lanes)
+  tray_coords <- cbind(tray_coords1,tray_coords2)
+  return(tray_coords)
+}
+
+
+con_coord <- function(con_lanes,con_lanes_width){
+  for(i in 1:con_lanes){
+    con_coords <- paste("con_coords",i,sep = "")
+    assign(con_coords,rep(0,con_lanes*con_fields))
+  }
+  con_coords1 <- rep(seq(-(con_lanes_width*(con_lanes-1))/2,(con_lanes_width*(con_lanes-1))/2,by = con_lanes_width),each = con_fields)
+  con_coords2 <- rep(seq((adv_length*con_fields)-con_lanes_width,con_lanes_width, by = -adv_length),con_lanes)
+  con_coords <- cbind(con_coords1,con_coords2)
+  return(con_coords)
+}
