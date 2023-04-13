@@ -18,3 +18,4 @@ contray <- function(con_lanes,con_fields,con_buf,weighing,tray_lanes){
   con_tray <- list(conveyor,tray)
   return(con_tray)
 }
+
