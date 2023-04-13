@@ -5,9 +5,9 @@ contray <- function(con_lanes,con_fields,con_buf,weighing,tray_lanes){
   dec_zone <- matrix((con_lanes*con_fields+con_lanes*con_buf+1):(con_lanes*con_fields+con_lanes*con_buf+con_lanes*weighing),ncol=con_lanes,nrow=weighing,byrow=T)
   colnames(grab_zone) <- paste0("Ln", 1:ncol(grab_zone))
   rownames(grab_zone) <- paste0("G_pos", nrow(grab_zone):1)
-  rownames(buf_zone) <- paste0("B_pos", nrow(buf_zone):1)
   rownames(dec_zone) <- paste0("D_pos", nrow(dec_zone):1)
-  conveyor <- rbind(grab_zone,buf_zone,dec_zone)
+  rownames(buf_zone) <- paste0("B_pos", nrow(buf_zone):1)
+  conveyor <- rbind(grab_zone,dec_zone,buf_zone)
   
   # Construct tray lanes
   tray <- matrix(1:(con_fields*tray_lanes),ncol=tray_lanes,nrow=con_fields,byrow=T)
