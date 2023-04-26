@@ -12,7 +12,7 @@ tray_coord <- function(tray_lanes,tray_adv_length,con_lanes_width){
   else{
     tray_coords1 <- rep(c(-cent_to_drop,cent_to_drop),each=tray_fields)
   }
-  rep(seq(tray_adv_length*tray_fields+con_adv_length,tray_adv_length, by = -tray_adv_length),tray_lanes)
+  tray_coords2 <- rep(seq(tray_adv_length*tray_fields+con_adv_length,tray_adv_length, by = -tray_adv_length),tray_lanes)
   tray_coords <- cbind(tray_coords1,tray_coords2)
   return(tray_coords)
 }
