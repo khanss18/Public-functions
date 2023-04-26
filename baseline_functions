@@ -24,7 +24,7 @@ contray <- function(con_lanes,con_fields,con_buf,con_dec,weighing,tray_lanes,tra
 
 
 # Coordinates of trays
-tray_coord <- function(tray_lanes,adv_length,con_lanes_width){
+tray_coord <- function(tray_lanes,tray_adv_length,con_lanes_width){
   cent_to_drop <- con_width/2 + tray_width/2
     con_lanes*(con_lanes_width/2) + 2
   for(i in 1:2){
@@ -37,7 +37,7 @@ tray_coord <- function(tray_lanes,adv_length,con_lanes_width){
   else{
     tray_coords1 <- rep(c(-cent_to_drop,cent_to_drop),each=tray_fields)
   }
-  tray_coords2 <- rep(seq(tray_adv_length*tray_fields,tray_adv_length, by = -adv_length),tray_lanes)
+  rep(seq(tray_adv_length*tray_fields+con_adv_length,tray_adv_length, by = -tray_adv_length),tray_lanes)
   tray_coords <- cbind(tray_coords1,tray_coords2)
   return(tray_coords)
 }
@@ -54,6 +54,3 @@ con_coord <- function(con_lanes,con_lanes_width,con_adv_length){
   con_coords <- cbind(con_coords1,con_coords2)
   return(con_coords)
 }
-
-
-
