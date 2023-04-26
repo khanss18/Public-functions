@@ -24,7 +24,7 @@ contray <- function(con_lanes,con_fields,con_buf,con_dec,weighing,tray_lanes,tra
 
 
 # Coordinates of trays
-tray_coord <- function(tray_lanes,tray_adv_length,con_lanes_width){
+tray_coord <- function(tray_lanes,con_adv_length,tray_adv_length,con_lanes_width){
   cent_to_drop <- con_width/2 + tray_width/2
     con_lanes*(con_lanes_width/2) + 2
   for(i in 1:2){
