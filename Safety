@@ -1,0 +1,260 @@
+weight_fields[28] = 200; weight_fields[57] = 256; weight_fields[86] = 290
+weight_trays <- matrix(c(480,356,283,450,178,0,374,422,145,275,0,0),ncol = 2, nrow = 6)
+
+
+#### Install package(s) ####
+install.packages("proxy") # Determine distances across matrices
+library(proxy)
+
+
+#### Functions ####
+{
+  # Conveyor and tray lane construction
+  source("https://raw.githubusercontent.com/khanss18/Public-functions/Sim_baseline/baseline_contray")
+  
+  # Coordinates
+  source("https://raw.githubusercontent.com/khanss18/Public-functions/Sim_baseline/baseline_coordinates")
+  
+  # For tray weight reward
+  source("https://raw.githubusercontent.com/khanss18/Public-functions/main/Usefulness%20of%20Tray%20Weight")
+}
+
+
+#### Conveyor lane and tray lane function ####
+{
+  con_lanes <- 3 # Number of conveyor lanes: 1-3 (always 3)
+  con_fields <- 14 # Number of 10cm rows in robot grabbing zone: 1425mm => 14 rows
+  con_buf <- 13 # Number of 10cm rows in buffer zone (length of con_buf + con_dec is 1400mm / con_dec = 1 => 13 rows)
+  con_dec <- 1 # Number of 10cm rows in decision zone (always 1)
+  weighing <- 1 # Number of 10cm rows in weighing zone: This zone is technically 533mm => 5 rows, but as we do not care about items until they are fully weighed, we say this is only 1 row
+  tray_lanes <- 2 # Number of tray lanes: 1-2 (always 2)
+  tray_fields <- 6 # Number of trays in each tray lane (always 6 due to simplification)
+  
+  con_tray <- contray(con_lanes, con_fields, con_buf, con_dec, weighing, tray_lanes, tray_fields)
+  conveyor <- con_tray[1][[1]]
+  tray <- con_tray[2][[1]]
+}
+
+
+#### Tray and conveyor coordinates coordinates ####
+{
+  tray_length <- 20 # Length of trays (always 20cm)
+  tray_width <- 10 # Width of trays (always 10cm)
+  tray_adv_length <- 20 # Advancement length of trays lane pr. increment (always 20cm for simplicity)
+  con_adv_length <- 10 # Advancement length of conveyor belt pr. time unit (10cm pr. 1/5 sec.)
+  con_width <- 51 # Width of conveyor: 508mm => 51cm (thus each lane is 17 cm wide)
+  con_lanes_width <- con_width/con_lanes # Width of each conveyor lane in cm
+  
+  # Tray and conveyor field coordinates
+  tray_coords <- tray_coord(tray_lanes,con_adv_length,tray_adv_length,con_lanes_width) # Tray coordinates
+  con_coords <- con_coord(con_lanes,con_lanes_width,con_adv_length) # Conveyor coordinates (only in grabbing zone)
+
+  # creating distance matrices
+  conv_to_tray <- proxy::dist(con_coords, tray_coords, method="euclidean") # Distance from each conveyor field (rows) to each tray (columns)
+  tray_to_conv <- proxy::dist(tray_coords, con_coords, method="euclidean") # Distance from each tray (rows) to each conveyor field (columns)
+  
+  # Time for moving distances above (based on linear interpolation)
+  t_conv_to_tray <- conv_to_tray*lm_pick2place$coefficients[2]+lm_pick2place$coefficients[1] # Time from initializing pick-up to completing drop off
+  t_tray_to_conv <- tray_to_conv*lm_place2pick$coefficients[2]+lm_place2pick$coefficients[1] # Time from having finished drop-off to be ready to initialize pick-up
+}
+
+
+#### Constructs barplot ####
+{
+  target_weight <- 600 # Target weight
+  pos_tol <- 30 # Positive tolerance
+  neg_tol <- 15 # Negative tolerance
+  SuperB_int <- 10 # Superbatching interval
+  min_neg_tol <- floor(neg_tol/SuperB_int)*SuperB_int # Minimum allowed negative tolerance due to superbatching interval
+  Accept <- c(0.3,0.4,0.2,0.1) # Length must be (pos_tol+min_neg_tol)/SuperB_int and entries should sum to 1
+  
+  min_w <- min(weight_dist)
+  max_w <- max(weight_dist)
+  tot_rand <- length(weight_dist)
+  
+  trayweight_rew <- tray_fit(target_weight, pos_tol, SuperB_int, Accept, weight_dist)[[1]]
+  trayweight_rew <- trayweight_rew[-c(2:floor(min_w/SuperB_int))]
+  barplot(trayweight_rew, dims = 1)
+  
+  TWG <- tray_fit(target_weight, pos_tol, SuperB_int, Accept, weight_dist)[[2]] # Tray weight groups
+  TW <- tray_fit(target_weight, pos_tol, SuperB_int, Accept, weight_dist)[[3]] # Tray weights
+  IW <- tray_fit(target_weight, pos_tol, SuperB_int, Accept, weight_dist)[[4]] # Item weights
+  IWG <- tray_fit(target_weight, pos_tol, SuperB_int, Accept, weight_dist)[[5]] # Item weight groups
+}
+
+
+#### SIMULATION ENVIRONMENT: INPUT ####
+
+{
+  # - Inter-arrival time
+  int_arr <- 1/12
+  
+  # Runtime: 5 time units pr. second for thirty minutes
+  tim <- 5 # Conveyor belt moves 50cm/sec & conveyor belt advances 10cm/iteration => 50/10 = 5 iterations/second
+  t_units <- tim*60*30
+  
+  # Setting weights on conveyor fields and tray fields to 0
+  weight_fields <- matrix(0,nrow = nrow(con_tray[1][[1]]),ncol = ncol(con_tray[1][[1]]))
+  weight_trays <- matrix(0,nrow = nrow(con_tray[2][[1]]),ncol = ncol(con_tray[2][[1]]))
+  state <- cbind(c(weight_trays[,1],rep(NA,(nrow(weight_fields)-nrow(weight_trays)))),weight_fields,c(weight_trays[,2],rep(NA,(nrow(weight_fields)-nrow(weight_trays)))))
+  colnames(state) <- c("Tray_ln1", paste0("Con_ln", 1:(ncol(state)-2)),"Tray_ln2")
+  rownames(state) <- paste0("Pos", nrow(state):1)
+  
+  # Initialize reward function
+  reward_trays <- matrix(0,nrow = nrow(con_tray[2][[1]]),ncol = ncol(con_tray[2][[1]]))
+  colnames(reward_trays) <- paste0("Tray_ln", 1:ncol(reward_trays))
+  rownames(reward_trays) <- paste0("Tray_pos", 1:nrow(reward_trays))
+  
+  # Time vectors
+  belt_time <- seq(from = 1/con_adv_length, to = (1/con_adv_length)*con_fields, by = 1/con_adv_length)
+  pipl_time <- rep(0, con_fields)
+  grab_time <- rep(0, con_fields)
+  
+  # Initial placement of robotic arm
+  center <- c(0, (con_fields*con_adv_length)/2)
+  rob_coords <- center
+  rob_rot <- 0
+  rob_idle <- 0
+  
+  # Filled trays
+  filled <- c()
+  num_items <- 0
+  waste <- c()
+}
+
+
+#### SIMULATION ENVIRONMENT: SIMULATION ####
+
+for(t in 1:t_units){ # Outer loop - loop over entire time period
+  
+  Last_row <- conveyor["G_pos14",]
+  for(i in 1:Last_row){
+    if(t(weight_fields)[i] > 0){
+      waste <- c(waste,t(weight_fields[i]))
+    }
+  }
+  
+  
+  Decision_row <- conveyor["D_pos1",]
+  reward_list <- list()
+  new_ln_inner <- 1
+  item_ln <- 0
+  for(i in Decision_row){
+    i <- 82
+    if(t(weight_fields)[i] > 0){
+      for(j in 1:length(reward_trays)){
+        reward_trays[j] <- trayweight_rew[match((floor((weight_trays[j]+t(weight_fields)[i])/SuperB_int)*SuperB_int),TW)]
+        #dist_to_item <- t_conv_to_tray[new_ln_inner,j]
+        #reward_trays[j] = nw_reward*dist_to_item
+      }
+      reward_trays[!is.na(reward_trays)] <- 1
+      reward_trays[is.na(reward_trays)] <- 0
+    }
+    reward_trays[i] <- reward_trays[i]*1/i*t_conv_to_tray[new_ln_inner,i]
+  }
+  item_ln <- item_ln + 1
+  new_ln_inner <- new_ln_inner + con_fields
+  }
+  
+  mean(trayweight_rew)
+  decision_list <- list()
+  for(i in decision_zone){
+    if(max(reward_list[[i]]) > 0){
+      decision_list[[i]] <- reward_list[[i]]
+    }
+    else{
+      decision_list[[i]] <- matrix(c(rep(0,length(weight_trays))),nrow = nrow(weight_trays), ncol = ncol(weight_trays))
+    }
+  }
+  
+  buffer_list <- list()
+  for(i in setdiff(which(weight_fields > 0),c(decision_zone))){
+    if(max(reward_list[[i]]) > 0){
+      buffer_list[[i]] <- reward_list[[i]]
+    }
+    else{
+      buffer_list[[i]] <- matrix(c(rep(0,length(weight_trays))),nrow = nrow(weight_trays), ncol = ncol(weight_trays))
+    }
+  }
+  
+  comp_decision_list <- purrr::compact(decision_list)
+  comp_buffer_list <- purrr::compact(buffer_list)
+  
+  #array <- array(decision_list)
+  
+  max_decision <- max(comp_decision_list[[which.max(unlist(lapply(comp_decision_list,FUN=max)))]])
+  max_decision_pos <- which.max(comp_decision_list[[which.max(unlist(lapply(comp_decision_list,FUN=max)))]])
+  
+  
+  
+  
+  # Checks if last tray is full and takes it out of system
+  for(i in 1:ncol(weight_trays)){
+    if(weight_trays[1,i] >= target_weight){
+      filled <- c(filled,weight_trays[1,i])
+      for(j in 1:(nrow(weight_trays)-1)){
+        weight_trays[j,i] <- weight_trays[j+1,i]
+      }
+      weight_trays[nrow(weight_trays),i] <- 0
+    }
+  }
+  
+  
+  # Pushes each item one field ahead
+  for(i in 2:(nrow(weight_fields))){
+    weight_fields[i-1,] <- weight_fields[i,]
+  }
+  weight_fields[nrow(weight_fields),] <- rep(0,con_lanes)
+  
+  
+  # Introduces new item with probability int_arr (for each conveyor lane)
+  if(t <= (t_units-nrow(weight_fields))){
+    for(i in 1:con_lanes){
+      r_unif <- runif(1, min= 0, max = 1)
+      # If new item is introduced, places it on first conveyor field (and is weighed)
+      if(r_unif >= 1 - int_arr){
+        r_samp <- sample(weight_dist,1) # Item weight sampled from weight distribution
+        r_samp2 <- sample(rot_dist,1) # Item rotation sampled from rotation distribution
+        weight_fields[nrow(weight_fields),i] <- r_samp
+        rot_fields[nrow(rot_fields),i] <- r_samp2
+        #weight_fields[5] <- 245; weight_fields[13] <- 257; rot_fields[5] <- 30; rot_fields[12] <- 210
+      }
+      if(weight_fields[nrow(weight_fields),i] > 0){
+        num_items <- num_items + 1
+      }
+    }
+  }
+  
+  
+  # Robot idle time decreases
+  if(rob_idle > 1/tim){ # Robot idle time decreases one time step
+    rob_idle <- rob_idle - 1/tim
+  }
+  # Robot idle time decreases to 0 if it can finish its job within next time step
+  else if(rob_idle <= (1/tim-(traverse/(100/dist(rbind(rob_coords,center)))))){ # If there is time for the robot to center, it will
+    rob_coords <- center
+    rob_idle <- 0
+  }
+  else{
+    rob_idle <- 0
+  }
+  
+  
+  # To view the state after each iteration. Comment out if not necessary
+  #state <- cbind(c(weight_trays[,1],rep(NA,(nrow(weight_fields)-nrow(weight_trays)))),weight_fields,c(weight_trays[,2],rep(NA,(nrow(weight_fields)-nrow(weight_trays)))))
+  #print(state)
+  #Sys.sleep(1)
+}
+
+
+
+hist(filled,breaks=25)
+length(filled)
+sum(filled)/length(filled)
+num_items
+length(waste)
+num_items - length(waste)
+
+
+
+
