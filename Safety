@@ -1,3 +1,37 @@
+#### Install package(s) ####
+install.packages("readxl") # Load data from Excel
+library(readxl)
+
+
+#### Cellerland_Weight distribution ####
+Cellerland <- readxl::read_excel("C:/Users/Bruger/Documents/AAU/10. semester/Data/Cellerland.filtered.xlsx")
+Cellerland <- Cellerland[Cellerland$weight != 0,]
+weight_dist <- Cellerland$weight
+hist(weight_dist, breaks = 25)
+
+
+#### Linear model ####
+
+# Pick2place
+pick2place <- read_excel("~/AAU/10. semester/Data/Robot_data.xlsx", sheet = "Robot_r3 data", range = "K2:N5341")
+dist_pick2place <- 100*pick2place$dist_m
+time_pick2place <- pick2place$time_sec
+lm_pick2place <- lm(time_pick2place~dist_pick2place)
+
+plot(dist_pick2place,time_pick2place, main="Time based on distance",xlab="Distance in cm", ylab="Time", pch=20,col="blue",xlim=c(0,140),ylim=c(0.2,0.5))
+abline(lm_pick2place, col="blue")
+
+
+# Place2pick
+place2pick <- read_excel("~/AAU/10. semester/Data/Robot_data.xlsx", sheet = "Robot_r3 data", range = "P2:S6068")
+dist_place2pick <- 100*place2pick$dist_m
+time_place2pick <- place2pick$time_sec
+lm_place2pick <- lm(time_place2pick~dist_place2pick)
+
+points(dist_place2pick,time_place2pick, pch=20,col="red")
+abline(lm(time_place2pick~dist_place2pick), col="red")
+
+
 weight_fields[28] = 200; weight_fields[57] = 256; weight_fields[86] = 290
 weight_trays <- matrix(c(480,356,283,450,178,0,374,422,145,275,0,0),ncol = 2, nrow = 6)
 
