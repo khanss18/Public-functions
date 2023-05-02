@@ -54,3 +54,20 @@ con_coord <- function(con_lanes,con_lanes_width,con_adv_length){
   con_coords <- cbind(con_coords1,con_coords2)
   return(con_coords)
 }
+
+
+# Reward function
+reward_baseline <- function(reward_trays,trayweight_rew,weight_trays,weight_fields,SuperB_int,TW,t_conv_to_tray,new_ln_inner){
+  for(j in 1:length(reward_trays)){
+    reward_trays[j] <- trayweight_rew[match((floor((weight_trays[j]+t(weight_fields)[i])/SuperB_int)*SuperB_int),TW)]
+  }
+  reward_trays[!is.na(reward_trays)] <- 1
+  reward_trays[is.na(reward_trays)] <- 0
+  for(j in 1:nrow(reward_trays)){
+    reward_trays[j,1] <- reward_trays[j,1]*(1/j)*(1/t_conv_to_tray[new_ln_inner,j])
+  }
+  for(j in 1:nrow(reward_trays)){
+    reward_trays[j,2] <- reward_trays[j,2]*(1/j)*(1/t_conv_to_tray[new_ln_inner,(j+nrow(reward_trays))])
+  }
+  return(reward_trays)
+}
