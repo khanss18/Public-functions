@@ -1,0 +1,32 @@
+tray_fit <- function(target_weight, pos_tol, SuperB_int, Accept, weight_dist){
+  TWG <- c(0,seq(from = floor(min_w/SuperB_int), to = (target_weight+pos_tol-SuperB_int)/SuperB_int))
+  TW <- TWG*SuperB_int
+  IW <- seq(from = floor(min_w/SuperB_int)*SuperB_int, to = floor(max_w/SuperB_int)*SuperB_int, by = SuperB_int)
+  IWG <- IW/SuperB_int
+  IWG_vec <- rep(0,length(IWG))
+  
+  missing <- as.data.frame(matrix(0,nrow = (max(TWG)+1), ncol = ceiling((target_weight+pos_tol)/IW[1])))
+  colnames(missing) <- paste0("miss", 0:(ncol(missing)-1))
+  rownames(missing) <- paste0("reward", 0:(nrow(missing)-1))
+  missing$miss0 <- replace(missing$miss0, list = (length(missing$miss0)-length(Accept)+1):length(missing$miss0),Accept)
+  
+  for(i in 1:length(IWG)){
+    num_IWG <- paste("num_IWG",i,sep = "")
+    assign(num_IWG,sum(weight_dist >= IW[i] & weight_dist < IW[i+1]))
+    IWG_vec[i] <- sum(weight_dist >= IW[i] & weight_dist < IW[i+1])/tot_rand
+  }
+  
+  for(i in 2:ncol(missing)){
+    for(j in nrow(missing):1){
+      for(k in tail(IWG,n=1):IWG[1]){
+        missing[j,i] <- missing[j,i]+missing[j+k,i-1]*as.numeric(IWG_vec)[k-(IWG[1]-1)]
+        missing[is.na(missing)] <- 0
+      }
+    }
+  }
+  bar_plot <- colSums(t(missing), dims = 1)
+  
+  
+  lst <- list(bar_plot,TWG,TW,IW,IWG)
+  return(lst)
+}
