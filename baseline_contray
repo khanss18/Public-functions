@@ -9,7 +9,7 @@ contray <- function(con_lanes,con_fields,con_buf,con_dec,weighing,tray_lanes,tra
   rownames(buf_zone) <- paste0("B_pos", nrow(buf_zone):1)
   rownames(dec_zone) <- paste0("D_pos", nrow(dec_zone):1)
   rownames(weight_zone) <- paste0("W_pos", nrow(weight_zone):1)
-  conveyor <- rbind(grab_zone,buf_zone,dec_zone,weight_zone)
+  conveyor <- rbind(grab_zone,buf_zone,dec_zone,)
   
   # Construct tray lanes
   tray <- matrix(1:(tray_fields*tray_lanes),ncol=tray_lanes,nrow=tray_fields,byrow=T)
