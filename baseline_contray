@@ -2,7 +2,7 @@ contray <- function(con_lanes,con_fields,con_buf,con_dec,weighing,tray_lanes,tra
   #Construct conveyor
   grab_zone <- matrix(1:(con_lanes*con_fields),ncol=con_lanes,nrow=con_fields,byrow=T)
   buf_zone <- matrix((con_lanes*con_fields+1):(con_lanes*(con_fields+con_buf)),ncol=con_lanes,nrow=con_buf,byrow=T)
-  dec_zone <- matrix((con_lanes*(con_fields+con_buf)+1):(con_lanes*(con_fields+con_buf+con_dec),ncol=con_lanes,nrow=con_dec,byrow=T)
+  dec_zone <- matrix((con_lanes*(con_fields+con_buf)+1):(con_lanes*(con_fields+con_buf+con_dec)),ncol=con_lanes,nrow=con_dec,byrow=T)
   weight_zone <- matrix((con_lanes*(con_fields+con_buf+con_dec)+1):(con_lanes*(con_fields+con_buf+con_dec+weighing),ncol=con_lanes,nrow=weighing,byrow=T)
   colnames(grab_zone) <- paste0("Ln", 1:ncol(grab_zone))
   rownames(grab_zone) <- paste0("G_pos", nrow(grab_zone):1)
