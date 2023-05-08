@@ -5,7 +5,7 @@
 
 f3 <- function(a){
   for(j in 1:length(reward_trays)){
-    nw_reward <- trayweight_rew[match((floor((weight_trays[j]+weight_fields[i])/SuperB_int)*SuperB_int),TW)]
+    nw_reward <- trayweight_rew[match((floor((weight_trays[j]+a)/SuperB_int)*SuperB_int),TW)]
     dist_to_item <- t_conv_to_tray[new_ln_inner,j]
     placement <- (i-con_fields-1-item_ln*nrow(weight_fields))
     reward_trays[j] <- nw_reward*dist_to_item^(-1)*0.9^(placement)
