@@ -1,4 +1,4 @@
-# Reward considers:
+# Reward function takes input a=weight_fields[i] and reward considers:
 # 1) New weight of trays
 # 2) Position of trays
 # 3) Remaining infeed
