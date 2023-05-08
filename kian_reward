@@ -10,5 +10,6 @@ f3 <- function(a){
     placement <- (i-con_fields-1-item_ln*nrow(weight_fields))
     reward_trays[j] <- nw_reward*dist_to_item^(-1)*0.9^(placement)
   }
+  return(reward_trays)
 }
 
