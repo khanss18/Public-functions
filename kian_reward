@@ -3,7 +3,7 @@
 # 2) Position of trays
 # 3) Remaining infeed
 
-f9 <- function(a){
+f3 <- function(a){
   for(j in 1:length(reward_trays)){
     nw_reward <- trayweight_rew[match((floor((weight_trays[j]+weight_fields[i])/SuperB_int)*SuperB_int),TW)]
     dist_to_item <- t_conv_to_tray[new_ln_inner,j]
