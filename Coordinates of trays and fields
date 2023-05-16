@@ -1,5 +1,5 @@
 # Coordinates of trays
-tray_coord <- function(tray_lanes,con_adv_length,tray_adv_length,tray_width,tray_fields,con_width,con_lanes_width,con_lanes){
+tray_coord <- function(tray_lanes,con_adv_length,tray_adv_length,con_lanes_width){
   cent_to_drop <- con_width/2 + tray_width/2
     con_lanes*(con_lanes_width/2) + 2
   for(i in 1:2){
