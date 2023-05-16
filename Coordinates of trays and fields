@@ -19,7 +19,7 @@ tray_coord <- function(tray_lanes,con_adv_length,tray_adv_length,con_lanes_width
 
 
 # Coordinates of fields
-con_coord <- function(con_lanes,con_lanes_width,con_fields,con_adv_length){
+con_coord <- function(con_lanes,con_lanes_width,con_adv_length){
   for(i in 1:2){
     con_coords <- paste("con_coords",i,sep = "")
     assign(con_coords,rep(0,con_lanes*con_fields))
