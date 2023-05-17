@@ -7,7 +7,7 @@ tray_fit <- function(target_weight, pos_tol, SuperB_int, Accept, weight_dist){
   
   missing <- as.data.frame(matrix(0,nrow = (max(TWG)+1), ncol = ceiling((target_weight+pos_tol)/IW[1])))
   colnames(missing) <- paste0("miss", 0:(ncol(missing)-1))
-  rownames(missing) <- paste0("reward", 0:(nrow(missing)-1))
+  rownames(missing) <- paste0("TWG", 0:(nrow(missing)-1))
   missing$miss0 <- replace(missing$miss0, list = (length(missing$miss0)-length(Accept)+1):length(missing$miss0),Accept)
   
   for(i in 1:length(IWG)){
