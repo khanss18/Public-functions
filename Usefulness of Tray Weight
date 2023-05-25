@@ -13,7 +13,7 @@ tray_fit <- function(target_weight, pos_tol, SuperB_int, Accept, weight_dist){
   for(i in 1:length(IWG)){
     num_IWG <- paste("num_IWG",i,sep = "")
     assign(num_IWG,sum(weight_dist >= IW[i] & weight_dist < IW[i+1]))
-    IWG_vec[i] <- sum(weight_dist >= IW[i] & weight_dist < IW[i+1])/tot_rand
+    IWG_vec[i] <- sum(weight_dist >= IW[i] & weight_dist < IW[i+1])/length(weight_dist)
   }
   
   for(i in 2:ncol(missing)){
